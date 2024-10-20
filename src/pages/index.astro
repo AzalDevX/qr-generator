@@ -1,41 +1,176 @@
 ---
 import Layout from '../layouts/Layout.astro';
-import Card from '../components/Card.astro';
+import Widget from '../components/Widget.astro';
 ---
 
-<Layout title="Astro + TailwindCSS Template">
-  <main class="max-w-4xl mx-auto p-6 pt-16">
-    <h1 class="text-text-primary text-5xl font-extrabold text-center mb-8">Bienvenido a <strong class="text-purple-300">Astro</strong> + <strong class="text-teal-300">TailwindCSS</strong></h1>
-    <p class="text-center text-xl mb-12">
-      ¡Empieza con <code class="bg-code-background border-1 border-code-border px-2 py-1 rounded-md">src/pages</code> para codear!<br />
-      <strong class="text-accent-primary">Objetivo:</strong> Facilitar la creación de proyectos combinados con ambas tecnologías.
-    </p>
-    <ul role="list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <Card
-        href="https://astro.build/"
-        title="Inicia tu Proyecto"
-        body="Comienza a desarrollar tu idea usando este template como base. ¡Explora las posibilidades!"
-      />
-      <Card
-        href="https://docs.astro.build/en/getting-started/"
-        title="Documentación"
-        body="Aprende a integrar nuevas funcionalidades, y consulta las guías para personalizar el template."
-      />
-      <Card
-        href="https://tailwindcss.com/docs/guides/astro"
-        title="Aprende Astro y TailwindCSS"
-        body="Descubre cómo aprovechar al máximo Astro y TailwindCSS en tus proyectos."
-      />
-      <Card
-        href="https://github.com/azaldevx/astro-template"
-        title="Contribuir al Proyecto"
-        body="¿Tienes ideas o mejoras? Colabora en el desarrollo de este template en GitHub."
-      />
-    </ul>
-  </main>
+<Layout title="QR Code Generator - Nothing Style">
+  <main class="min-h-screen bg-black text-white font-mono p-4 flex flex-col gap-4">
+    <div class="flex flex-row gap-4">
+    <Widget title="Local Time" className='flex-1'>
+      <div id="local-time" class="text-8xl font-dotted text-center py-4 font-clock">00:00:00</div>
+    </Widget>
 
-  <footer class="mt-12 text-center text-footer">
-    <p>Creado por <a href="https://www.linkedin.com/in/azaldev" class="text-accent-primary hover:underline">AzalDevX</a> - 
-    <a href="https://github.com/azaldevx/astro-template" class="text-accent-primary hover:underline">GitHub</a></p>
-  </footer>
+      <Widget title="Input" className="flex-1">
+        <input
+          type="text"
+          id="qr-input"
+          class="w-full bg-black text-white border border-zinc-700 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 transition-colors duration-300"
+          placeholder="Enter text or URL"
+        />
+      </Widget>
+
+      <Widget title="Image" className="flex-1">
+        <input
+          type="file"
+          id="image-input"
+          accept="image/*"
+          class="hidden"
+        />
+        <label
+          for="image-input"
+          class="block w-full bg-black text-white rounded-xl px-4 py-2 text-center cursor-pointer hover:bg-red-600 transition-colors"
+        >
+          Select Image
+        </label>
+        <div id="image-preview" class="mt-4 h-24 bg-zinc-800 rounded-xl flex items-center justify-center">
+          <p class="text-zinc-500">Image preview</p>
+        </div>
+      </Widget>
+    </div>
+
+    <Widget title="Generate">
+      <button
+        id="generate-btn"
+        class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-red-700"
+      >
+        Generate QR Code
+      </button>
+    </Widget>
+
+    <Widget title="QR Code">
+      <div id="qr-code" class="bg-zinc-800 p-4 rounded-xl w-full h-48 flex items-center justify-center">
+        <p class="text-zinc-500 text-center">QR Code will appear here</p>
+      </div>
+    </Widget>
+
+    <Widget title="Download">
+      <button
+        id="download-btn"
+        class="w-full bg-zinc-800 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-zinc-700"
+        disabled
+      >
+        Download QR Code
+      </button>
+    </Widget>
+  </main>
 </Layout>
+
+<script>
+  import QRCode from 'qrcode';
+
+  const input = document.getElementById('qr-input') as HTMLInputElement;
+  const imageInput = document.getElementById('image-input') as HTMLInputElement;
+  const imagePreview = document.getElementById('image-preview') as HTMLDivElement;
+  const generateBtn = document.getElementById('generate-btn') as HTMLButtonElement;
+  const qrCodeDiv = document.getElementById('qr-code') as HTMLDivElement;
+  const downloadBtn = document.getElementById('download-btn') as HTMLButtonElement;
+  const localTimeDiv = document.getElementById('local-time') as HTMLDivElement;
+
+  let selectedImage: string | null = null;
+
+  imageInput.addEventListener('change', handleImageUpload);
+  generateBtn.addEventListener('click', generateQRCode);
+  downloadBtn.addEventListener('click', downloadQRCode);
+
+  function updateLocalTime() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    localTimeDiv.textContent = `${hours}:${minutes}:${seconds}`;
+  }
+
+  // Update time immediately and then every second
+  updateLocalTime();
+  setInterval(updateLocalTime, 1000);
+
+  function handleImageUpload(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        selectedImage = e.target?.result as string;
+        imagePreview.innerHTML = `<img src="${selectedImage}" alt="Selected image" class="max-h-full max-w-full object-contain rounded-xl">`;
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  async function generateQRCode() {
+    const text = input.value;
+    if (text) {
+      try {
+        const canvas = document.createElement('canvas');
+        const qrSize = 300;
+        canvas.width = qrSize;
+        canvas.height = qrSize;
+        
+        await QRCode.toCanvas(canvas, text, {
+          width: qrSize,
+          height: qrSize,
+          margin: 1,
+          color: {
+            dark: '#000',
+            light: '#fff'
+          }
+        });
+
+        if (selectedImage) {
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            const img = new Image();
+            img.onload = () => {
+              const imageSize = qrSize / 4;
+              const x = (qrSize - imageSize) / 2;
+              const y = (qrSize - imageSize) / 2;
+
+              ctx.beginPath();
+              ctx.arc(x + imageSize / 2, y + imageSize / 2, imageSize / 2, 0, Math.PI * 2, true);
+              ctx.closePath();
+              ctx.clip();
+
+              ctx.fillStyle = '#fff';
+              ctx.fillRect(x, y, imageSize, imageSize);
+
+              ctx.drawImage(img, x, y, imageSize, imageSize);
+
+              ctx.restore();
+
+              updateQRCode(canvas.toDataURL());
+            };
+            img.src = selectedImage;
+          }
+        } else {
+          updateQRCode(canvas.toDataURL());
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  }
+
+  function updateQRCode(dataURL: string) {
+    qrCodeDiv.innerHTML = `<img src="${dataURL}" alt="QR Code" class="max-w-full max-h-full">`;
+    downloadBtn.disabled = false;
+  }
+
+  function downloadQRCode() {
+    const img = qrCodeDiv.querySelector('img');
+    if (img) {
+      const link = document.createElement('a');
+      link.download = 'qrcode.png';
+      link.href = img.src;
+      link.click();
+    }
+  }
+</script>

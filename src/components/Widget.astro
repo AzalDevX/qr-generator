@@ -1,0 +1,63 @@
+---
+export interface Props {
+  title?: string;
+  color?: 'default' | 'red' | 'dark';
+  className?: string;
+}
+
+const { title, color = 'default', className = '' } = Astro.props;
+
+const bgColor = color === 'red' ? 'bg-red-600' : color === 'dark' ? 'bg-zinc-800' : 'bg-zinc-900';
+---
+
+<div class={`${bgColor} ${className} rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out flex flex-col`}>
+  {title && (
+    <div class="flex justify-between items-center flex-shrink-0">
+      <h2 class="text-xs font-bold uppercase">{title}</h2>
+      <button class="toggle-widget text-lg">-</button>
+    </div>
+  )}
+  <div class="widget-content mt-4 overflow-hidden transition-all duration-300 ease-in-out flex-grow">
+    <slot />
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const widgets = document.querySelectorAll('.rounded-2xl');
+    widgets.forEach(widget => {
+      const toggleBtn = widget.querySelector('.toggle-widget');
+      const content = widget.querySelector('.widget-content');
+      
+      if (toggleBtn && content) {
+        toggleBtn.addEventListener('click', () => {
+          widget.classList.toggle('minimized');
+          const isMinimized = widget.classList.contains('minimized');
+          toggleBtn.textContent = isMinimized ? '+' : '-';
+          
+          if (isMinimized) {
+            const contentHeight = content.scrollHeight;
+            widget.style.setProperty('--content-height', `${contentHeight}px`);
+            content.style.maxHeight = '0px';
+            content.style.marginTop = '0px';
+          } else {
+            content.style.maxHeight = `var(--content-height)`;
+            content.style.marginTop = '1rem'; // 16px, equivalent to mt-4
+          }
+        });
+      }
+    });
+  });
+</script>
+
+<style>
+  .widget-content {
+    max-height: var(--content-height);
+  }
+  .minimized {
+    min-height: 2.5rem; /* Adjust this value to match the height of the title bar */
+  }
+  .minimized .widget-content {
+    margin-top: 0;
+  }
+</style>
