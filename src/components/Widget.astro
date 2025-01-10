@@ -10,14 +10,23 @@ const { title, color = 'default', className = '' } = Astro.props;
 const bgColor = color === 'red' ? 'bg-red-600' : color === 'dark' ? 'bg-zinc-800' : 'bg-zinc-900';
 ---
 
-<div class={`${bgColor} ${className} rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out flex flex-col`}>
+<div 
+  class={`${bgColor} ${className} rounded-2xl p-4 shadow-lg transition-all duration-300 ease-in-out flex flex-col animate-fade-in hover:shadow-xl focus-within:ring-2 focus-within:ring-white/20`}
+  role="region"
+  aria-expanded="true"
+>
   {title && (
     <div class="flex justify-between items-center flex-shrink-0">
-      <h2 class="text-xs font-bold uppercase">{title}</h2>
-      <button class="toggle-widget text-lg">-</button>
+      <h2 class="text-xs font-bold uppercase tracking-wider">{title}</h2>
+      <button 
+        class="toggle-widget text-lg w-8 h-8 rounded-full flex items-center justify-center hover:bg-white/10 focus:outline-none focus:ring-2 focus:ring-white/20 transition-all duration-200"
+        aria-label="Toggle widget content"
+      >
+        <span class="transform transition-transform duration-300">-</span>
+      </button>
     </div>
   )}
-  <div class="widget-content mt-4 overflow-hidden transition-all duration-300 ease-in-out flex-grow">
+  <div class="widget-content mt-4 overflow-hidden transition-all duration-300 ease-in-out flex-grow animate-slide-down">
     <slot />
   </div>
 </div>
@@ -28,21 +37,34 @@ const bgColor = color === 'red' ? 'bg-red-600' : color === 'dark' ? 'bg-zinc-800
     widgets.forEach(widget => {
       const toggleBtn = widget.querySelector('.toggle-widget');
       const content = widget.querySelector('.widget-content');
+      const toggleIcon = toggleBtn?.querySelector('span');
       
       if (toggleBtn && content) {
         toggleBtn.addEventListener('click', () => {
           widget.classList.toggle('minimized');
           const isMinimized = widget.classList.contains('minimized');
-          toggleBtn.textContent = isMinimized ? '+' : '-';
+          
+          // Update ARIA attributes
+          widget.setAttribute('aria-expanded', (!isMinimized).toString());
+          
+          // Rotate toggle icon
+          if (toggleIcon) {
+            toggleIcon.textContent = isMinimized ? '+' : '-';
+            toggleIcon.style.transform = isMinimized ? 'rotate(180deg)' : 'rotate(0)';
+          }
           
           if (isMinimized) {
             const contentHeight = content.scrollHeight;
             widget.style.setProperty('--content-height', `${contentHeight}px`);
             content.style.maxHeight = '0px';
             content.style.marginTop = '0px';
+            content.classList.remove('animate-slide-down');
+            content.classList.add('animate-slide-up');
           } else {
             content.style.maxHeight = `var(--content-height)`;
-            content.style.marginTop = '1rem'; // 16px, equivalent to mt-4
+            content.style.marginTop = '1rem';
+            content.classList.remove('animate-slide-up');
+            content.classList.add('animate-slide-down');
           }
         });
       }
@@ -51,13 +73,76 @@ const bgColor = color === 'red' ? 'bg-red-600' : color === 'dark' ? 'bg-zinc-800
 </script>
 
 <style>
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-down {
+    animation: slideDown 0.3s ease-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.3s ease-out;
+  }
+
   .widget-content {
     max-height: var(--content-height);
+    will-change: transform, opacity;
   }
+
   .minimized {
-    min-height: 2.5rem; /* Adjust this value to match the height of the title bar */
+    min-height: 2.5rem;
   }
+
   .minimized .widget-content {
     margin-top: 0;
+  }
+
+  /* Añadir efecto de hover al widget completo */
+  .rounded-2xl {
+    transform: translateY(0);
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  }
+
+  .rounded-2xl:hover {
+    transform: translateY(-2px);
+  }
+
+  /* Mejorar la interactividad del botón */
+  .toggle-widget:active {
+    transform: scale(0.95);
   }
 </style>
