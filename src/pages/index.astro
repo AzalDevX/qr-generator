@@ -4,22 +4,22 @@ import Widget from '../components/Widget.astro';
 ---
 
 <Layout title="QR Code Generator - Nothing Style">
-  <main class="min-h-screen bg-black text-white font-mono p-4 flex flex-col gap-4">
-    <div class="flex flex-row gap-4">
-    <Widget title="Local Time" className='flex-1'>
-      <div id="local-time" class="text-8xl font-dotted text-center py-4 font-clock">00:00:00</div>
-    </Widget>
+  <main class="min-h-screen bg-black text-white font-mono p-4 md:p-6 lg:p-8 flex flex-col gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Widget title="Local Time" className="col-span-1 md:col-span-2 lg:col-span-1">
+        <div id="local-time" class="text-4xl sm:text-6xl lg:text-8xl font-dotted text-center py-2 sm:py-4 font-clock">00:00:00</div>
+      </Widget>
 
-      <Widget title="Input" className="flex-1">
+      <Widget title="Input" className="col-span-1">
         <input
           type="text"
           id="qr-input"
-          class="w-full bg-black text-white border border-zinc-700 rounded-xl px-4 py-2 focus:outline-none focus:border-red-500 transition-colors duration-300"
+          class="w-full bg-black text-white border border-zinc-700 rounded-xl px-3 py-2 sm:px-4 sm:py-2 focus:outline-none focus:border-red-500 transition-colors duration-300 text-sm sm:text-base"
           placeholder="Enter text or URL"
         />
       </Widget>
 
-      <Widget title="Image" className="flex-1">
+      <Widget title="Image" className="col-span-1">
         <input
           type="file"
           id="image-input"
@@ -28,12 +28,12 @@ import Widget from '../components/Widget.astro';
         />
         <label
           for="image-input"
-          class="block w-full bg-black text-white rounded-xl px-4 py-2 text-center cursor-pointer hover:bg-red-600 transition-colors"
+          class="block w-full bg-black text-white rounded-xl px-3 py-2 sm:px-4 sm:py-2 text-center cursor-pointer hover:bg-red-600 transition-colors text-sm sm:text-base"
         >
           Select Image
         </label>
-        <div id="image-preview" class="mt-4 h-24 bg-zinc-800 rounded-xl flex items-center justify-center">
-          <p class="text-zinc-500">Image preview</p>
+        <div id="image-preview" class="mt-2 sm:mt-4 h-16 sm:h-24 bg-zinc-800 rounded-xl flex items-center justify-center">
+          <p class="text-zinc-500 text-sm sm:text-base">Image preview</p>
         </div>
       </Widget>
     </div>
@@ -41,22 +41,22 @@ import Widget from '../components/Widget.astro';
     <Widget title="Generate">
       <button
         id="generate-btn"
-        class="w-full bg-red-600 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-red-700"
+        class="w-full bg-red-600 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-red-700 text-sm sm:text-base"
       >
         Generate QR Code
       </button>
     </Widget>
 
     <Widget title="QR Code">
-      <div id="qr-code" class="bg-zinc-800 p-4 rounded-xl w-full h-48 flex items-center justify-center">
-        <p class="text-zinc-500 text-center">QR Code will appear here</p>
+      <div id="qr-code" class="bg-zinc-800 p-2 sm:p-4 rounded-xl w-full h-32 sm:h-48 flex items-center justify-center">
+        <p class="text-zinc-500 text-center text-sm sm:text-base">QR Code will appear here</p>
       </div>
     </Widget>
 
     <Widget title="Download">
       <button
         id="download-btn"
-        class="w-full bg-zinc-800 text-white font-bold py-3 px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-zinc-700"
+        class="w-full bg-zinc-800 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-xl transition-colors duration-300 ease-in-out hover:bg-zinc-700 text-sm sm:text-base"
         disabled
       >
         Download QR Code
